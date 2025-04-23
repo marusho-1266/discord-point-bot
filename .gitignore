@@ -1,0 +1,30 @@
+# Environment variables
+.env
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Logs
+logs
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Google API credentials
+credentials.json
+token.json 
+
+todo.md
+
+.cursor

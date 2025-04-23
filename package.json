@@ -1,0 +1,33 @@
+{
+  "name": "discord-point-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for tracking user activity and awarding points",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "points",
+    "activity",
+    "tracker"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "googleapis": "^129.0.0",
+    "moment": "^2.30.1",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+} 
