@@ -31,10 +31,47 @@ module.exports = {
         )
         .setFooter({ text: 'その他質問があれば、サーバー管理者にお問い合わせください。' });
       
-      await interaction.reply({ embeds: [embed] });
+      // 応答状態をチェック
+      if (interaction.replied) {
+        console.log('helpコマンド: インタラクションはすでに応答済みのため、followUpを使用');
+        await interaction.followUp({ embeds: [embed] }).catch(err => {
+          console.error('helpコマンド: followUpに失敗', err);
+        });
+      } else if (interaction.deferred) {
+        console.log('helpコマンド: インタラクションは遅延中のため、editReplyを使用');
+        await interaction.editReply({ embeds: [embed] }).catch(err => {
+          console.error('helpコマンド: editReplyに失敗', err);
+        });
+      } else {
+        console.log('helpコマンド: 新規応答を送信');
+        await interaction.reply({ embeds: [embed] }).catch(err => {
+          console.error('helpコマンド: replyに失敗', err);
+        });
+      }
     } catch (error) {
       console.error('ヘルプコマンド実行中にエラーが発生しました:', error);
-      await interaction.reply({ content: 'コマンド実行中にエラーが発生しました。', ephemeral: true });
+      
+      try {
+        // エラー応答
+        const errorMsg = { 
+          content: 'コマンド実行中にエラーが発生しました。', 
+          ephemeral: true 
+        };
+        
+        // 応答状態をチェック
+        if (interaction.replied) {
+          await interaction.followUp(errorMsg).catch(e => 
+            console.error('helpコマンド: エラー応答のfollowUpに失敗', e));
+        } else if (interaction.deferred) {
+          await interaction.editReply(errorMsg).catch(e => 
+            console.error('helpコマンド: エラー応答のeditReplyに失敗', e));
+        } else {
+          await interaction.reply(errorMsg).catch(e => 
+            console.error('helpコマンド: エラー応答のreplyに失敗', e));
+        }
+      } catch (responseError) {
+        console.error('helpコマンド: エラー応答処理自体が失敗:', responseError);
+      }
     }
   },
 }; 

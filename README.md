@@ -89,20 +89,32 @@ function handleRequest(e) {
   let result = {};
   
   try {
+    console.log(`処理リクエスト受信: action=${action}, パラメータ:`, params);
+    
     switch(action) {
       case 'getUserData':
+        console.log(`getUserDataアクション実行: guildId=${params.guildId}, userId=${params.userId}`);
         result = getUserData(ss, params.guildId, params.userId);
         break;
       case 'saveUserData':
+        console.log(`saveUserDataアクション実行: `, params.userData);
         result = saveUserData(ss, JSON.parse(params.userData));
         break;
       case 'getServerRanking':
+        console.log(`getServerRankingアクション実行: guildId=${params.guildId}, limit=${params.limit}`);
         result = getServerRanking(ss, params.guildId, params.limit);
         break;
       case 'logEventParticipation':
+        console.log(`logEventParticipationアクション実行: guildId=${params.guildId}, userId=${params.userId}, eventName=${params.eventName}`);
         result = logEventParticipation(ss, params.guildId, params.userId, params.eventName, params.bonusPoints);
         break;
+      case 'logPointsHistory':
+        console.log(`logPointsHistoryアクション実行: guildId=${params.guildId}, userId=${params.userId}, points=${params.points}, reason=${params.reason}`);
+        result = logPointsHistory(ss, params.guildId, params.userId, params.points, params.reason);
+        console.log(`logPointsHistory実行結果:`, result);
+        break;
       default:
+        console.error(`未知のアクション: ${action}`);
         throw new Error('Unknown action');
     }
     
@@ -236,6 +248,46 @@ function logEventParticipation(ss, guildId, userId, eventName, bonusPoints) {
     eventName,
     bonusPoints: parseInt(bonusPoints)
   };
+}
+
+function logPointsHistory(ss, guildId, userId, points, reason) {
+  try {
+    console.log(`logPointsHistory実行: guildId=${guildId}, userId=${userId}, points=${points}, reason=${reason}`);
+    
+    // PointsHistoryシートが存在するか確認
+    let sheet = ss.getSheetByName('PointsHistory');
+    if (!sheet) {
+      console.log('PointsHistoryシートが存在しないため作成します');
+      sheet = ss.insertSheet('PointsHistory');
+      sheet.appendRow(['timestamp', 'guildId', 'userId', 'points', 'reason']);
+      sheet.getRange(1, 1, 1, 5).setFontWeight('bold');
+    }
+    
+    const timestamp = new Date().toISOString();
+    console.log(`ポイント履歴を記録します: timestamp=${timestamp}`);
+    
+    sheet.appendRow([
+      timestamp,
+      guildId,
+      userId,
+      parseInt(points),
+      reason
+    ]);
+    
+    const result = {
+      timestamp,
+      guildId,
+      userId,
+      points: parseInt(points),
+      reason
+    };
+    
+    console.log('ポイント履歴記録成功:', result);
+    return result;
+  } catch (error) {
+    console.error('ポイント履歴の記録中にエラーが発生しました:', error);
+    throw error;
+  }
 }
 ```
 

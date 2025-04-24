@@ -1,0 +1,18 @@
+{
+  "verbose": true,
+  "ignore": [
+    "data/*",
+    "*.json",
+    "*.log",
+    ".git/*",
+    ".cursor/*",
+    "node_modules/*"
+  ],
+  "execMap": {
+    "js": "node"
+  },
+  "events": {
+    "restart": "echo \"[警告] nodemonがファイル変更を検知して再起動しました\n\""
+  },
+  "delay": "5000"
+}

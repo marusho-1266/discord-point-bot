@@ -3,9 +3,27 @@
     "guildId": "1364616210943184908",
     "userId": "1138769333288439860",
     "username": "ikahdkmrok_40662",
-    "points": "1システム管理者によるポイント調整",
-    "lastActiveDate": "2025-04-22T15:00:00.000Z",
-    "consecutiveDays": 1,
+    "points": 8,
+    "lastActiveDate": "2025-04-23T15:00:00.000Z",
+    "consecutiveDays": 2,
     "joinDate": "2025-04-22T15:00:00.000Z"
+  },
+  {
+    "guildId": "1364616210943184908",
+    "userId": "249522968659623937",
+    "username": "marushe9221",
+    "points": 4,
+    "lastActiveDate": "2025-04-23T15:00:00.000Z",
+    "consecutiveDays": 1,
+    "joinDate": "2025-04-23T15:00:00.000Z"
+  },
+  {
+    "guildId": "test-guild-id",
+    "userId": "test-user-id",
+    "username": "test-user",
+    "points": 5,
+    "lastActiveDate": "2025-04-24",
+    "consecutiveDays": 0,
+    "joinDate": "2025-04-24"
   }
 ]
