@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const sheetsService = require('../services/sheetsService');
+const userDataService = require('../services/userDataService');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -30,7 +30,7 @@ module.exports = {
       const limit = interaction.options.getInteger('limit') || 10;
       
       // ランキングデータを取得
-      const rankingData = await sheetsService.getServerRanking(guildId, limit);
+      const rankingData = await userDataService.getServerRanking(guildId, limit);
       
       // 有効なインタラクションか確認
       if (!interaction.isRepliable()) {
