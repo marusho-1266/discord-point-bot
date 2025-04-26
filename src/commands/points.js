@@ -1,48 +1,86 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const pointService = require('../services/pointService');
+const sheetsService = require('../services/sheetsService');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('points')
-    .setDescription('自分のポイント情報を確認する'),
+    .setDescription('自分のポイント情報を表示'),
   
   async execute(interaction) {
-    await interaction.deferReply();
-    
+    // deferReplyの前にチェック
+    if (interaction.replied || interaction.deferred) {
+      console.log('インタラクションはすでに応答済みまたは遅延中です');
+      return;
+    }
+
     try {
-      const guildId = interaction.guild.id;
+      await interaction.deferReply().catch(error => {
+        console.error('deferReplyでエラーが発生しました:', error);
+        // タイムアウトなどですでにインタラクションが無効になっている可能性
+        return;
+      });
+      
       const userId = interaction.user.id;
+      const guildId = interaction.guild.id;
       
-      // ポイント情報を取得
-      const points = await pointService.getUserPoints(guildId, userId);
-      const consecutiveDays = await pointService.getUserConsecutiveDays(guildId, userId);
+      // Google Sheetsからユーザーデータを取得
+      const userData = await sheetsService.getUserData(guildId, userId);
       
-      // 次の連続ボーナスまでの日数を計算
-      const bonusDays = parseInt(process.env.CONSECUTIVE_BONUS_DAYS) || 10;
-      const daysUntilNextBonus = bonusDays - (consecutiveDays % bonusDays);
-      const nextBonusDay = consecutiveDays + daysUntilNextBonus;
+      // 有効なインタラクションか確認
+      if (!interaction.isRepliable()) {
+        console.log('インタラクションが応答不可能な状態です');
+        return;
+      }
       
-      // 埋め込みメッセージを作成
+      if (!userData) {
+        await interaction.editReply('ポイント情報がありません。会話に参加してポイントを獲得しましょう！').catch(error => {
+          console.error('editReplyでエラーが発生しました:', error);
+        });
+        return;
+      }
+      
+      // ポイント情報の埋め込みメッセージを作成
       const embed = new EmbedBuilder()
         .setColor(0x3498DB)
-        .setTitle('🏆 ポイント情報')
-        .setDescription(`${interaction.user.username} さんのポイント情報です`)
+        .setTitle('🌟 ポイント情報')
         .addFields(
-          { name: '現在のポイント', value: `${points} ポイント`, inline: true },
-          { name: '連続投稿日数', value: `${consecutiveDays} 日`, inline: true },
-          { name: '次のボーナス', value: `あと ${daysUntilNextBonus} 日（${nextBonusDay}日達成時）`, inline: false }
+          { name: 'ユーザー', value: `<@${userId}> (${userData.username})`, inline: true },
+          { name: 'ポイント', value: `${userData.points}`, inline: true },
+          { name: '連続投稿日数', value: `${userData.consecutiveDays}日`, inline: true },
+          { name: '最終アクティブ日', value: userData.lastActiveDate || '情報なし', inline: true },
+          { name: '参加日', value: userData.joinDate || '情報なし', inline: true }
         )
-        .setFooter({ text: `${interaction.guild.name} | ポイントシステム` })
+        .setFooter({ text: 'ポイントは毎日の会話で増えていきます！' })
         .setTimestamp();
       
-      await interaction.editReply({ embeds: [embed] });
-    } catch (error) {
-      console.error('ポイント確認コマンド実行中にエラーが発生しました:', error);
+      // インタラクションがまだ有効か確認
+      if (!interaction.isRepliable()) {
+        console.log('応答前にインタラクションが無効になりました');
+        return;
+      }
       
-      if (interaction.replied || interaction.deferred) {
-        await interaction.editReply({ content: 'ポイント情報の取得中にエラーが発生しました。しばらく経ってからもう一度お試しください。', ephemeral: true });
-      } else {
-        await interaction.reply({ content: 'ポイント情報の取得中にエラーが発生しました。しばらく経ってからもう一度お試しください。', ephemeral: true });
+      await interaction.editReply({ embeds: [embed] }).catch(error => {
+        console.error('embedの送信中にエラーが発生しました:', error);
+      });
+    } catch (error) {
+      console.error('ポイントコマンド実行中にエラーが発生しました:', error);
+      
+      // インタラクションの状態を確認し、適切な方法でエラーを返す
+      if (!interaction.isRepliable()) {
+        console.log('エラー応答不可: インタラクションが無効です');
+        return;
+      }
+      
+      try {
+        if (interaction.replied) {
+          await interaction.followUp({ content: 'ポイント情報の取得中にエラーが発生しました。しばらく経ってからもう一度お試しください。', ephemeral: true });
+        } else if (interaction.deferred) {
+          await interaction.editReply({ content: 'ポイント情報の取得中にエラーが発生しました。しばらく経ってからもう一度お試しください。', ephemeral: true });
+        } else {
+          await interaction.reply({ content: 'ポイント情報の取得中にエラーが発生しました。しばらく経ってからもう一度お試しください。', ephemeral: true });
+        }
+      } catch (responseError) {
+        console.error('エラー応答の送信に失敗しました:', responseError);
       }
     }
   },

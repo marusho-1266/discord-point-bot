@@ -6,6 +6,7 @@ module.exports = {
     // スラッシュコマンドのみを処理
     if (!interaction.isChatInputCommand()) return;
 
+    console.log(`[InteractionCreate] コマンド実行: ${interaction.commandName} (ID: ${interaction.id})`);
     const command = interaction.client.commands.get(interaction.commandName);
 
     if (!command) {
@@ -14,19 +15,32 @@ module.exports = {
     }
 
     try {
+      // コマンドの実行
       await command.execute(interaction);
     } catch (error) {
       console.error(`${interaction.commandName} コマンドの実行中にエラーが発生しました:`, error);
+      
+      // インタラクションが有効か確認
+      if (!interaction.isRepliable()) {
+        console.log(`[${interaction.commandName}] インタラクションが無効化されているため、エラー応答をスキップします`);
+        return;
+      }
       
       // エラー発生時の対応を試みる
       try {
         // エラー応答
         const errorResponse = { 
-          content: 'このコマンドの実行中にエラーが発生しました。', 
+          content: 'このコマンドの実行中にエラーが発生しました。しばらく経ってからもう一度お試しください。', 
           ephemeral: true 
         };
         
-        // すでに応答済みか確認
+        // すでに応答済みか確認（競合状態を防ぐために再確認）
+        if (!interaction.isRepliable()) {
+          console.log('エラー応答処理中にインタラクションが無効化されました');
+          return;
+        }
+        
+        // 応答状態に応じた適切な方法でエラーメッセージを送信
         if (interaction.replied) {
           // すでに応答済みの場合はフォローアップメッセージを送信
           console.log('インタラクションはすでに応答済みのため、followUpを使用します');
