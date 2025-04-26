@@ -346,6 +346,41 @@ npm run dev
    - Start Command: `node src/index.js`
    - 環境変数に `.env` ファイルの内容を設定
 
+### 環境変数の設定手順
+
+1. Render ダッシュボードでデプロイしたサービスを選択します
+2. 左側のメニューから「Environment」をクリックします
+3. 「Environment Variables」セクションで以下の環境変数を設定します：
+   - `DISCORD_TOKEN` - Discord Bot のトークン
+   - `DISCORD_CLIENT_ID` - Discord アプリケーションのクライアント ID
+   - `GOOGLE_SHEETS_API_KEY` - Google Sheets API キー
+   - `GOOGLE_SHEETS_ID` - 使用する Google スプレッドシートの ID
+   - `GOOGLE_SERVICE_ACCOUNT_EMAIL` - サービスアカウントのメールアドレス
+   - `GOOGLE_PRIVATE_KEY` - サービスアカウントの秘密鍵（引用符「"」を含む完全な形式で入力）
+   - `NODE_ENV` - `production` に設定
+   - `PORT` - `3000` に設定（Render の Web サービスではデフォルトのポート）
+   - `SERVER_URL` - デプロイされた Web サービスの URL（例: `https://your-app-name.onrender.com`）
+   - `DAILY_MESSAGE_POINT` - 日々のメッセージに付与するポイント（例: 1）
+   - `CONSECUTIVE_BONUS_DAYS` - 連続投稿ボーナスの日数（例: 10）
+   - `CONSECUTIVE_BONUS_POINTS` - 連続投稿ボーナスのポイント（例: 10）
+4. 「Save Changes」ボタンをクリックして保存します
+5. 環境変数を設定後、「Manual Deploy」→「Clear build cache & deploy」をクリックして再デプロイします
+
+**注意**: GOOGLE_PRIVATE_KEY の設定時には、改行を含む完全な形式のキーを入力する必要があります。Render の環境変数エディタでは、複数行のテキストを入力できます。
+
+### Render のスリープ対策
+
+Render の無料プランでは、15 分間アクセスがないとサービスがスリープ状態になります。これを防ぐために、以下の対策が実装されています：
+
+1. 自己 Ping 機能：Bot は 14 分ごとに自身の Web サービスに HTTP リクエストを送信してスリープを防止します
+2. 設定方法：
+   - `SERVER_URL` 環境変数に、Render にデプロイした Web サービスの URL を設定します
+   - 例: `https://your-discord-bot.onrender.com`
+3. 確認方法：
+   - Render ダッシュボードの「Logs」セクションで、定期的に `Self-ping successful` というログが表示されていれば正常に動作しています
+
+この機能により、Bot は常時稼働状態を維持できます。
+
 ## ライセンス
 
 MIT

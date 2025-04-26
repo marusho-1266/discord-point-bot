@@ -2,6 +2,7 @@
 const { Client, Events, GatewayIntentBits, Collection, Partials } = require('discord.js');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 require('dotenv').config();
 
 // ボット起動のログを追加
@@ -10,6 +11,37 @@ console.log('環境変数の確認:');
 console.log(`- NODE_ENV: ${process.env.NODE_ENV}`);
 console.log(`- DISCORD_CLIENT_ID: ${process.env.DISCORD_CLIENT_ID}`);
 console.log(`- GOOGLE_SHEETS_API_URL: ${process.env.GOOGLE_SHEETS_API_URL ? '設定済み' : '未設定'}`);
+
+// Renderのスリープ防止用の自己Pingサーバー
+function setupKeepAliveServer() {
+  const server = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('Discord Point Bot is alive!');
+  });
+  
+  server.listen(process.env.PORT || 3000, () => {
+    console.log(`Keep-alive server running on port ${process.env.PORT || 3000}`);
+  });
+  
+  // 15分(900000ms)ごとに自己Pingを実行
+  setInterval(() => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] Performing self-ping to prevent sleep...`);
+    
+    const serverUrl = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 3000}`;
+    http.get(serverUrl, (res) => {
+      console.log(`[${timestamp}] Self-ping successful, status: ${res.statusCode}`);
+    }).on('error', (err) => {
+      console.error(`[${timestamp}] Self-ping failed:`, err);
+    });
+  }, 840000); // 14分ごとに実行（15分の制限より少し短く）
+}
+
+// Renderの場合は自己Pingサーバーをセットアップ
+if (process.env.NODE_ENV === 'production') {
+  setupKeepAliveServer();
+  console.log('Keep-alive mechanism has been setup for production environment');
+}
 
 // Discordクライアントの作成と必要なインテントの設定
 const client = new Client({
